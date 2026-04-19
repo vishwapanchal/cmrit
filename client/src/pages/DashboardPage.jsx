@@ -90,6 +90,39 @@ export default function DashboardPage() {
   // Show cyberpunk loader while loading
   if (isLoading) return <CyberLoader />;
 
+  // When demo is off and no data — show a friendly empty state
+  if (!demoMode && activeMSMEs.length === 0 && !msmeLoading) {
+    return (
+      <div className="space-y-6 max-w-[1200px]">
+        <div>
+          <h1 className="page-title">{isBanker ? "Portfolio Overview" : "Dashboard"}</h1>
+          <p className="page-subtitle">Welcome back, {activeUser?.name}</p>
+        </div>
+        <div className="card p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <BarChart3 size={24} className="text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-txt mb-2">No MSME Data Available</h3>
+          <p className="text-sm text-txt-secondary mb-5 max-w-md mx-auto">
+            {isBanker
+              ? "No MSME profiles found in the system. The backend server may still be warming up — try refreshing in a moment."
+              : "You haven't onboarded any MSME profiles yet. Get started by adding your business details."}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <button onClick={() => { dispatch(fetchMSMEs()); dispatch(fetchLoans()); }} className="btn-ghost">
+              <Activity size={14} /> Retry
+            </button>
+            {!isBanker && (
+              <button onClick={() => navigate("/msme/onboard")} className="btn-primary">
+                <PlusCircle size={16} /> Onboard MSME
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-[1200px]">
       {/* Header */}
