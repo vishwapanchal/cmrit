@@ -26,9 +26,8 @@ export default function DashboardPage() {
   const { latest: apiLatest, history: apiHistory, loading: scoreLoading } = useSelector((s) => s.score);
   const { list: apiLoans, loading: loanLoading } = useSelector((s) => s.loan);
 
-  const isLoading = !demoMode && (msmeLoading || scoreLoading || loanLoading);
-
   const { demoMode, data: demoData } = useDemoData();
+  const isLoading = !demoMode && (msmeLoading || scoreLoading || loanLoading);
 
   // Resolve data source: demo OR real API
   const activeUser = demoMode ? demoData?.users?.bankOfficer : user;
