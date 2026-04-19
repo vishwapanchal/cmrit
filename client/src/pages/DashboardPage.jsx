@@ -16,7 +16,7 @@ import RiskBadge from "../components/RiskBadge";
 import RevenueChart from "../components/RevenueChart";
 import CashFlowChart from "../components/CashFlowChart";
 import ScoreHistoryChart from "../components/ScoreHistoryChart";
-import { SkeletonStatsRow, SkeletonGauge, SkeletonChart, SkeletonCard } from "../components/Skeleton";
+import CyberLoader from "../components/CyberLoader";
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -87,28 +87,8 @@ export default function DashboardPage() {
   // Recent activity from demo
   const recentActivity = demoMode ? (demoData?.auditLogs || []).slice(0, 8) : [];
 
-  // Show skeleton while loading
-  if (isLoading) {
-    return (
-      <div className="space-y-6 max-w-[1200px]">
-        <div>
-          <h1 className="page-title">{isBanker ? "Portfolio Overview" : "Dashboard"}</h1>
-          <p className="page-subtitle">Loading your data...</p>
-        </div>
-        <SkeletonStatsRow count={4} />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 space-y-5">
-            <SkeletonGauge />
-            <SkeletonCard />
-          </div>
-          <div className="lg:col-span-8 space-y-5">
-            <SkeletonChart />
-            <SkeletonChart />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Show cyberpunk loader while loading
+  if (isLoading) return <CyberLoader />;
 
   return (
     <div className="space-y-6 max-w-[1200px]">
