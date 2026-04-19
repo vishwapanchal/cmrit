@@ -1,15 +1,20 @@
-import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
+import { useDemoData } from "../contexts/DemoDataContext";
 
-export default function ProtectedRoute({ children, roles }) {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+/**
+ * ProtectedRoute — Guards authenticated routes
+ * 
+ * When demo mode is ON, allows access without authentication
+ * so the full app can be explored with sample data.
+ */
+export default function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { demoMode } = useDemoData();
 
-  if (!isAuthenticated) {
+  // Allow access if authenticated OR if demo mode is enabled
+  if (!isAuthenticated && !demoMode) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (roles && !roles.includes(user?.role)) {
-    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

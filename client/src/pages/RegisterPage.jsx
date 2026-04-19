@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser, clearError } from "../store/authSlice";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "msme_owner", organisationName: "" });
@@ -21,10 +21,10 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-bg flex">
       <div className="hidden lg:flex lg:w-[48%] bg-primary-50 flex-col justify-between p-12">
         <div>
-          <div className="flex items-center gap-2.5 mb-16">
+          <Link to="/" className="flex items-center gap-2.5 mb-16 no-underline">
             <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">CS</div>
             <span className="text-base font-semibold text-txt">CreditSaathi</span>
-          </div>
+          </Link>
           <h2 className="text-3xl font-bold text-txt leading-tight tracking-tight max-w-md">
             Get started in minutes, not weeks
           </h2>
@@ -40,14 +40,14 @@ export default function RegisterPage() {
             ))}
           </div>
         </div>
-        <p className="text-xs text-txt-muted">© 2024 CreditSaathi Technologies</p>
+        <p className="text-xs text-txt-muted">© 2026 CreditSaathi Technologies</p>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-sm animate-fade-in">
-          <div className="lg:hidden flex items-center gap-2 mb-8">
+          <Link to="/" className="flex items-center gap-2 mb-8 no-underline">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xs">CS</div>
-          </div>
+          </Link>
           <h1 className="text-xl font-bold text-txt">Create account</h1>
           <p className="text-txt-secondary text-sm mt-1 mb-6">Join CreditSaathi</p>
 
@@ -85,6 +85,10 @@ export default function RegisterPage() {
           <p className="text-center text-sm text-txt-secondary mt-6">
             Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
           </p>
+
+          <Link to="/" className="flex items-center justify-center gap-1.5 text-sm text-txt-muted hover:text-txt transition-colors mt-3">
+            <ArrowLeft size={14} /> Back to Home
+          </Link>
         </div>
       </div>
     </div>

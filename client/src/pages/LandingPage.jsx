@@ -74,11 +74,11 @@ function MiniGauge() {
 
   return (
     <svg ref={ref} width={180} height={110} viewBox="0 0 180 110">
-      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="#E5E7EB" strokeWidth="10" strokeLinecap="round" />
-      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="#1F7A63" strokeWidth="10" strokeLinecap="round"
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="var(--color-border)" strokeWidth="10" strokeLinecap="round" />
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="var(--color-primary)" strokeWidth="10" strokeLinecap="round"
         strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1)" }} />
-      <text x={cx} y={cy - 12} textAnchor="middle" fill="#1F2937" style={{ fontSize: "28px", fontWeight: 700, fontFamily: "Inter" }}>{score > 300 ? score : ""}</text>
-      <text x={cx} y={cy + 8} textAnchor="middle" fill="#2E7D32" style={{ fontSize: "10px", fontWeight: 600, fontFamily: "Inter" }}>{score > 300 ? "Low Risk" : ""}</text>
+      <text x={cx} y={cy - 12} textAnchor="middle" fill="var(--color-txt)" style={{ fontSize: "28px", fontWeight: 700, fontFamily: "Inter" }}>{score > 300 ? score : ""}</text>
+      <text x={cx} y={cy + 8} textAnchor="middle" fill="var(--color-success)" style={{ fontSize: "10px", fontWeight: 600, fontFamily: "Inter" }}>{score > 300 ? "Low Risk" : ""}</text>
     </svg>
   );
 }
@@ -95,12 +95,12 @@ export default function LandingPage() {
   return (
     <div className="bg-bg min-h-screen">
       {/* ── Sticky Header ── */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerSolid ? "bg-white border-b border-border shadow-subtle" : "bg-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerSolid ? "bg-surface border-b border-border shadow-subtle" : "bg-transparent"}`} style={headerSolid ? { background: 'var(--color-surface)' } : {}}>
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 no-underline">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xs">CS</div>
             <span className="text-sm font-semibold text-txt">CreditSaathi</span>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <Link to="/login" className="text-sm text-txt-secondary hover:text-txt transition-colors font-medium">Sign In</Link>
             <Link to="/register" className="btn-primary text-sm py-2 px-4">Get Started <ArrowRight size={14} /></Link>
@@ -156,7 +156,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Problem ── */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ background: 'var(--color-surface)' }}>
         <div className="max-w-4xl mx-auto text-center">
           <Section>
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">The Problem</p>
@@ -212,7 +212,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features / Dashboard Preview ── */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ background: 'var(--color-surface)' }}>
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <Section direction="left">
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-3">Platform Features</p>
@@ -301,7 +301,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6" style={{ background: 'var(--color-surface)' }}>
         <div className="max-w-3xl mx-auto text-center">
           <Section>
             <h2 className="text-3xl font-bold text-txt tracking-tight">Ready to transform your credit access?</h2>
@@ -319,10 +319,10 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="py-8 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 no-underline">
             <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-white font-bold text-[10px]">CS</div>
             <span className="text-sm font-medium text-txt">CreditSaathi</span>
-          </div>
+          </Link>
           <p className="text-xs text-txt-muted">© 2026 CreditSaathi Technologies. All rights reserved.</p>
         </div>
       </footer>

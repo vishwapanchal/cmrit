@@ -36,7 +36,7 @@ async def connect_db() -> None:
         database=_client[db_name],
         document_models=ALL_MODELS,
     )
-    print(f"📦 MongoDB connected: {settings.MONGO_URI}")
+    print(f"[DB] MongoDB connected: {settings.MONGO_URI}")
 
     # Ensure indexes exist on every launch
     await ensure_indexes()
@@ -48,7 +48,7 @@ async def connect_db() -> None:
 async def ensure_indexes() -> None:
     """Explicitly create MongoDB indexes for every model.
     Wrapped in try/except per index — resilient to existing indexes with different options."""
-    print("🔑 Ensuring indexes...")
+    print("[DB] Ensuring indexes...")
 
     db = _client[settings.MONGO_URI.rsplit("/", 1)[-1].split("?")[0] or "creditsaathi"]
 
@@ -77,9 +77,9 @@ async def ensure_indexes() -> None:
         try:
             await db[collection].create_index(keys, **opts)
         except Exception as e:
-            print(f"   ⚠️  Index {collection}.{keys}: {e}")
+            print(f"   [WARN] Index {collection}.{keys}: {e}")
 
-    print("   ✅ All indexes ensured")
+    print("   [OK] All indexes ensured")
 
 
 async def safe_seed() -> None:
@@ -91,10 +91,10 @@ async def safe_seed() -> None:
     owner = await User.find_one(User.email == "example@gmail.com")
 
     if officer and owner:
-        print("🌱 Default users already exist — skipping seed")
+        print("[SEED] Default users already exist -- skipping seed")
         return
 
-    print("🌱 Default users missing — running safe seed...")
+    print("[SEED] Default users missing -- running safe seed...")
 
     if not officer:
         officer = User(
@@ -106,7 +106,7 @@ async def safe_seed() -> None:
             organisation_type="bank",
         )
         await officer.insert()
-        print("   ✅ Created officer@gmail.com (bank_officer)")
+        print("   [OK] Created officer@gmail.com (bank_officer)")
 
     if not owner:
         owner = User(
@@ -118,15 +118,15 @@ async def safe_seed() -> None:
             organisation_type="msme",
         )
         await owner.insert()
-        print("   ✅ Created example@gmail.com (msme_owner)")
+        print("   [OK] Created example@gmail.com (msme_owner)")
 
     # Only seed MSME + demo data if no MSMEs exist at all
     msme_count = await MSME.count()
     if msme_count > 0:
-        print("   ℹ️  MSMEs already exist — skipping demo data seed")
+        print("   [INFO] MSMEs already exist -- skipping demo data seed")
         return
 
-    print("   📋 Seeding demo MSME data...")
+    print("   [SEED] Seeding demo MSME data...")
 
     import random
     from datetime import datetime, timedelta
@@ -287,7 +287,7 @@ async def safe_seed() -> None:
                 created_at=datetime.utcnow() - timedelta(days=random.randint(5, 60)),
             ).insert()
 
-    print("   ✅ Demo data seeded successfully")
+    print("   [OK] Demo data seeded successfully")
 
 
 async def disconnect_db() -> None:
@@ -295,4 +295,4 @@ async def disconnect_db() -> None:
     global _client
     if _client:
         _client.close()
-        print("📦 MongoDB disconnected")
+        print("[DB] MongoDB disconnected")
