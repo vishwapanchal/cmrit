@@ -16,14 +16,17 @@ import RiskBadge from "../components/RiskBadge";
 import RevenueChart from "../components/RevenueChart";
 import CashFlowChart from "../components/CashFlowChart";
 import ScoreHistoryChart from "../components/ScoreHistoryChart";
+import { SkeletonStatsRow, SkeletonGauge, SkeletonChart, SkeletonCard } from "../components/Skeleton";
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
-  const { list: msmes, gstRecords: apiGstRecords, transactionRecords: apiTxRecords } = useSelector((s) => s.msme);
-  const { latest: apiLatest, history: apiHistory } = useSelector((s) => s.score);
-  const { list: apiLoans } = useSelector((s) => s.loan);
+  const { list: msmes, gstRecords: apiGstRecords, transactionRecords: apiTxRecords, loading: msmeLoading } = useSelector((s) => s.msme);
+  const { latest: apiLatest, history: apiHistory, loading: scoreLoading } = useSelector((s) => s.score);
+  const { list: apiLoans, loading: loanLoading } = useSelector((s) => s.loan);
+
+  const isLoading = !demoMode && (msmeLoading || scoreLoading || loanLoading);
 
   const { demoMode, data: demoData } = useDemoData();
 
@@ -57,14 +60,23 @@ export default function DashboardPage() {
   const msme = activeMSMEs[0];
   const isBanker = activeUser?.role === "bank_officer" || activeUser?.role === "admin";
 
-  // Portfolio stats for banker
-  const portfolioStats = demoMode && demoData?.portfolioStats ? demoData.portfolioStats : {
-    totalMSMEs: activeMSMEs.length,
-    scoredMSMEs: activeMSMEs.filter((m) => m.latestScoreId).length,
-    pendingLoans: activeLoans.filter((l) => l.status === "submitted" || l.status === "under_review").length,
-    avgScore: 0,
-    riskDistribution: { low: 0, medium: 0, high: 0 },
-  };
+  // Portfolio stats for banker — computed from real API data
+  const computedStats = (() => {
+    const scored = activeMSMEs.filter((m) => m.latestScoreId);
+    const scores = scored.map((m) => typeof m.latestScoreId === "object" ? m.latestScoreId.scoreValue : 0).filter(Boolean);
+    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    const risk = { low: 0, medium: 0, high: 0 };
+    scored.forEach((m) => {
+      const cat = typeof m.latestScoreId === "object" ? m.latestScoreId.riskCategory : "";
+      if (cat === "Low") risk.low++;
+      else if (cat === "Medium") risk.medium++;
+      else if (cat === "High") risk.high++;
+    });
+    return { totalMSMEs: activeMSMEs.length, scoredMSMEs: scored.length, avgScore: avg, riskDistribution: risk,
+      pendingLoans: activeLoans.filter((l) => l.status === "submitted" || l.status === "under_review").length,
+    };
+  })();
+  const portfolioStats = demoMode && demoData?.portfolioStats ? demoData.portfolioStats : computedStats;
 
   // Risk distribution for donut
   const riskData = [
@@ -76,6 +88,29 @@ export default function DashboardPage() {
   // Recent activity from demo
   const recentActivity = demoMode ? (demoData?.auditLogs || []).slice(0, 8) : [];
 
+  // Show skeleton while loading
+  if (isLoading) {
+    return (
+      <div className="space-y-6 max-w-[1200px]">
+        <div>
+          <h1 className="page-title">{isBanker ? "Portfolio Overview" : "Dashboard"}</h1>
+          <p className="page-subtitle">Loading your data...</p>
+        </div>
+        <SkeletonStatsRow count={4} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4 space-y-5">
+            <SkeletonGauge />
+            <SkeletonCard />
+          </div>
+          <div className="lg:col-span-8 space-y-5">
+            <SkeletonChart />
+            <SkeletonChart />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-[1200px]">
       {/* Header */}
@@ -84,7 +119,7 @@ export default function DashboardPage() {
           <h1 className="page-title">{isBanker ? "Portfolio Overview" : "Dashboard"}</h1>
           <p className="page-subtitle">Welcome back, {activeUser?.name}</p>
         </div>
-        {!msme && !demoMode && <button onClick={() => navigate("/msme/onboard")} className="btn-primary"><PlusCircle size={16} /> Onboard MSME</button>}
+        {!msme && !demoMode && !isLoading && <button onClick={() => navigate("/msme/onboard")} className="btn-primary"><PlusCircle size={16} /> Onboard MSME</button>}
       </div>
 
       {/* Stats */}

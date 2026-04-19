@@ -7,8 +7,23 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-Proprietary-CD3D3D?style=for-the-badge)
+![Cloudflare](https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+
+### 🌐 Live Deployment
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | [creditsathi.pages.dev](https://creditsathi.pages.dev) |
+| **Backend API** | [creditsaathi-api-funi.onrender.com](https://creditsaathi-api-funi.onrender.com/api/v1/health) |
+| **API Docs** | [Swagger UI](https://creditsaathi-api-funi.onrender.com/api/v1/docs) |
+
+### 🔑 Demo Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Bank Officer | `officer@gmail.com` | `12345678` |
+| MSME Owner | `owner@gmail.com` | `12345678` |
 
 ---
 

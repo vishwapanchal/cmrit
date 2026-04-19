@@ -5,6 +5,7 @@ import { useDemoData } from "../contexts/DemoDataContext";
 import { useNavigate } from "react-router-dom";
 import { Building2, Search, Filter, LayoutGrid, List, ChevronLeft, ChevronRight } from "lucide-react";
 import RiskBadge from "../components/RiskBadge";
+import { SkeletonTable } from "../components/Skeleton";
 
 const SECTORS = ["All", "Textile", "Retail", "Manufacturing", "Food Processing", "Construction", "Services", "IT/Software", "Agriculture", "Healthcare"];
 const RISK_FILTERS = ["All", "Low", "Medium", "High"];
@@ -60,7 +61,7 @@ export default function MSMEListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">MSME Portfolio</h1>
-          <p className="page-subtitle">{filtered.length} businesses in portfolio</p>
+          <p className="page-subtitle">{loading ? "Loading..." : `${filtered.length} businesses in portfolio`}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setViewMode("list")} className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-colors ${viewMode === "list" ? "bg-primary text-white border-primary" : "border-border text-txt-muted hover:bg-surface-alt"}`}>

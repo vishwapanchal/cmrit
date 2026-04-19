@@ -18,10 +18,11 @@ from app.models.gst_record import GSTRecord
 from app.models.transaction_record import TransactionRecord
 from app.models.loan_application import LoanApplication
 from app.models.audit_log import AuditLog
+from app.models.document import UploadedDocument
 
 _client: AsyncIOMotorClient | None = None
 
-ALL_MODELS = [User, MSME, CreditScore, GSTRecord, TransactionRecord, LoanApplication, AuditLog]
+ALL_MODELS = [User, MSME, CreditScore, GSTRecord, TransactionRecord, LoanApplication, AuditLog, UploadedDocument]
 
 
 async def connect_db() -> None:

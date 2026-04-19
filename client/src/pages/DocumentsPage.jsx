@@ -1,48 +1,130 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
 import { useDemoData } from "../contexts/DemoDataContext";
 import { useToast } from "../components/ToastProvider";
-import { FileText, Upload, CheckCircle2, XCircle, Clock, Eye, Download } from "lucide-react";
+import api from "../services/api";
+import { FileText, Upload, CheckCircle2, XCircle, Clock, Download, Trash2, Loader } from "lucide-react";
 
-const DOC_TYPES = {
+const CATEGORIES = {
   pan_card: "PAN Card",
-  aadhaar_front: "Aadhaar (Front)",
-  aadhaar_back: "Aadhaar (Back)",
+  gst_certificate: "GST Certificate",
   bank_statement: "Bank Statement (6M)",
-  business_certificate: "Business Certificate",
+  incorporation: "Incorporation Certificate",
   profit_loss: "P&L Statement",
-};
-
-const STATUS_CONFIG = {
-  verified: { label: "Verified", badge: "badge-low", icon: CheckCircle2 },
-  pending: { label: "Pending", badge: "badge-medium", icon: Clock },
-  rejected: { label: "Rejected", badge: "badge-high", icon: XCircle },
+  other: "Other Document",
 };
 
 export default function DocumentsPage() {
   const { demoMode, data: demoData } = useDemoData();
   const { toast } = useToast();
-  const [dragOver, setDragOver] = useState(false);
-  const [selectedType, setSelectedType] = useState("pan_card");
+  const { list: msmes } = useSelector((s) => s.msme);
 
-  const documents = demoMode ? demoData?.documents || [] : [];
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("pan_card");
+  const [description, setDescription] = useState("");
+
+  const msmeId = msmes?.[0]?._id;
+
+  // Fetch documents from API
+  const fetchDocuments = useCallback(async () => {
+    if (demoMode || !msmeId) return;
+    setLoading(true);
+    try {
+      const { data } = await api.get(`/documents/${msmeId}`);
+      if (data.success) setDocuments(data.data || []);
+    } catch {
+      // silent fail
+    } finally {
+      setLoading(false);
+    }
+  }, [msmeId, demoMode]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  // Use demo data when demo mode is ON
+  const displayDocs = demoMode ? (demoData?.documents || []) : documents;
+
+  const uploadFile = async (file) => {
+    if (!msmeId) {
+      toast.error("No MSME profile found. Please onboard first.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 10 MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("msmeId", msmeId);
+      formData.append("category", selectedCategory);
+      if (description) formData.append("description", description);
+
+      const { data } = await api.post("/documents", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (data.success) {
+        toast.success(`${file.name} uploaded successfully`);
+        setDescription("");
+        fetchDocuments(); // Refresh list
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer?.files || []);
-    if (files.length > 0) {
-      toast.success(`${files[0].name} uploaded successfully`);
-    }
+    const file = e.dataTransfer?.files?.[0];
+    if (file) uploadFile(file);
   };
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File too large. Maximum size is 10MB.");
-        return;
+    if (file) uploadFile(file);
+    e.target.value = ""; // reset input
+  };
+
+  const handleDownload = async (doc) => {
+    try {
+      const { data } = await api.get(`/documents/${doc._id}/download`);
+      if (data.success) {
+        const byteChars = atob(data.data.fileData);
+        const byteArr = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+        const blob = new Blob([byteArr], { type: data.data.fileType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.data.fileName;
+        a.click();
+        URL.revokeObjectURL(url);
       }
-      toast.success(`${file.name} uploaded for ${DOC_TYPES[selectedType]}`);
+    } catch {
+      toast.error("Download failed");
+    }
+  };
+
+  const handleDelete = async (docId) => {
+    try {
+      const { data } = await api.delete(`/documents/${docId}`);
+      if (data.success) {
+        toast.success("Document deleted");
+        setDocuments((prev) => prev.filter((d) => d._id !== docId));
+      }
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
@@ -64,13 +146,19 @@ export default function DocumentsPage() {
       <div className="card p-6">
         <h3 className="text-sm font-semibold text-txt mb-4">Upload Document</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="md:col-span-1">
-            <label className="input-label">Document Type</label>
-            <select className="input-field" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-              {Object.entries(DOC_TYPES).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
+          <div className="space-y-3">
+            <div>
+              <label className="input-label">Category</label>
+              <select className="input-field" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                {Object.entries(CATEGORIES).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Description (optional)</label>
+              <input type="text" className="input-field" placeholder="e.g. FY 2025-26" value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
           </div>
           <div className="md:col-span-2">
             <label className="input-label">File</label>
@@ -81,11 +169,20 @@ export default function DocumentsPage() {
               onDrop={handleDrop}
               onClick={() => document.getElementById("doc-file-input").click()}
             >
-              <Upload size={24} className="text-txt-muted mx-auto mb-2" />
-              <p className="text-sm text-txt-secondary">
-                <span className="text-primary font-medium">Click to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-txt-muted mt-1">PDF, JPG, PNG — Max 10MB</p>
+              {uploading ? (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Loader size={20} className="animate-spin text-primary" />
+                  <span className="text-sm text-txt-secondary">Uploading...</span>
+                </div>
+              ) : (
+                <>
+                  <Upload size={24} className="text-txt-muted mx-auto mb-2" />
+                  <p className="text-sm text-txt-secondary">
+                    <span className="text-primary font-medium">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-txt-muted mt-1">PDF, JPG, PNG — Max 10MB</p>
+                </>
+              )}
             </div>
             <input id="doc-file-input" type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFileSelect} />
           </div>
@@ -93,55 +190,53 @@ export default function DocumentsPage() {
       </div>
 
       {/* Documents List */}
-      {documents.length > 0 ? (
+      {loading ? (
+        <div className="card p-10 text-center">
+          <Loader size={24} className="animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-txt-muted">Loading documents...</p>
+        </div>
+      ) : displayDocs.length > 0 ? (
         <div className="table-container">
           <div className="px-4 py-3 bg-surface-alt border-b border-border flex items-center justify-between">
             <h3 className="text-xs font-semibold text-txt-secondary uppercase tracking-wide">Uploaded Documents</h3>
-            <span className="text-xs text-txt-muted">{documents.length} documents</span>
+            <span className="text-xs text-txt-muted">{displayDocs.length} documents</span>
           </div>
           <table className="w-full">
             <thead>
               <tr>
-                <th className="table-header">Type</th>
+                <th className="table-header">Category</th>
                 <th className="table-header">File</th>
                 <th className="table-header">Size</th>
-                <th className="table-header">Status</th>
                 <th className="table-header">Uploaded</th>
                 <th className="table-header">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {documents.map((doc) => {
-                const statusCfg = STATUS_CONFIG[doc.status] || STATUS_CONFIG.pending;
-                const StatusIcon = statusCfg.icon;
-                return (
-                  <tr key={doc._id}>
-                    <td className="table-cell font-medium text-txt">{DOC_TYPES[doc.documentType] || doc.documentType}</td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-2">
-                        <FileText size={14} className="text-txt-muted" />
-                        <span className="text-xs truncate max-w-[150px]">{doc.fileName}</span>
-                      </div>
-                    </td>
-                    <td className="table-cell text-xs font-mono">{formatFileSize(doc.fileSize)}</td>
-                    <td className="table-cell">
-                      <span className={`${statusCfg.badge} flex items-center gap-1`}>
-                        <StatusIcon size={12} />
-                        {statusCfg.label}
-                      </span>
-                    </td>
-                    <td className="table-cell text-xs text-txt-muted">
-                      {new Date(doc.uploadedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-1">
-                        <button className="btn-ghost py-1 px-2 text-xs"><Eye size={12} /> View</button>
-                        <button className="btn-ghost py-1 px-2 text-xs"><Download size={12} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {displayDocs.map((doc) => (
+                <tr key={doc._id}>
+                  <td className="table-cell font-medium text-txt">{CATEGORIES[doc.category] || doc.category}</td>
+                  <td className="table-cell">
+                    <div className="flex items-center gap-2">
+                      <FileText size={14} className="text-txt-muted" />
+                      <span className="text-xs truncate max-w-[200px]">{doc.fileName}</span>
+                    </div>
+                  </td>
+                  <td className="table-cell text-xs font-mono">{formatFileSize(doc.fileSize)}</td>
+                  <td className="table-cell text-xs text-txt-muted">
+                    {new Date(doc.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </td>
+                  <td className="table-cell">
+                    <div className="flex items-center gap-1">
+                      {!demoMode && (
+                        <>
+                          <button onClick={() => handleDownload(doc)} className="btn-ghost py-1 px-2 text-xs"><Download size={12} /></button>
+                          <button onClick={() => handleDelete(doc._id)} className="btn-ghost py-1 px-2 text-xs text-danger"><Trash2 size={12} /></button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -153,25 +248,21 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {/* Document Requirements Info */}
+      {/* Document Checklist */}
       <div className="card p-5">
         <h3 className="text-sm font-semibold text-txt mb-3">Required Documents Checklist</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {Object.entries(DOC_TYPES).map(([key, label]) => {
-            const uploaded = documents.find((d) => d.documentType === key);
+          {Object.entries(CATEGORIES).filter(([k]) => k !== "other").map(([key, label]) => {
+            const uploaded = displayDocs.find((d) => d.category === key);
             return (
               <div key={key} className="flex items-center gap-2.5">
                 {uploaded ? (
-                  <CheckCircle2 size={16} className={uploaded.status === "verified" ? "text-success" : uploaded.status === "rejected" ? "text-danger" : "text-warning"} />
+                  <CheckCircle2 size={16} className="text-success" />
                 ) : (
                   <div className="w-4 h-4 rounded-full border-2 border-border" />
                 )}
                 <span className="text-sm text-txt">{label}</span>
-                {uploaded && (
-                  <span className={`text-[10px] ${STATUS_CONFIG[uploaded.status]?.badge || "badge-neutral"}`}>
-                    {STATUS_CONFIG[uploaded.status]?.label}
-                  </span>
-                )}
+                {uploaded && <span className="badge-low text-[10px]">Uploaded</span>}
               </div>
             );
           })}
