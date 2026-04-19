@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: creditsaathi-api
+    runtime: python
+    region: oregon
+    rootDir: server
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ML_SERVICE_URL
+        value: http://localhost:8000
+      - key: ALLOWED_ORIGIN
+        value: https://creditsaathi.vercel.app
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.12.0"
