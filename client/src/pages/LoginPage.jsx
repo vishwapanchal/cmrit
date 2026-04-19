@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearError } from "../store/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Shield, BarChart3, Landmark, ArrowLeft } from "lucide-react";
+import CircuitStatus from "../components/CircuitStatus";
 
 const highlights = [
   { icon: Shield, text: "Bank-grade security and data encryption" },
@@ -101,6 +102,11 @@ export default function LoginPage() {
             <ArrowLeft size={14} /> Back to Home
           </Link>
         </div>
+      </div>
+
+      {/* Circuit Status Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border" style={{ background: 'var(--color-bg)' }}>
+        <CircuitStatus />
       </div>
     </div>
   );

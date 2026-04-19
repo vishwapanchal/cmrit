@@ -51,6 +51,18 @@ app.add_middleware(
 )
 
 
+# ── Root ─────────────────────────────────────────────
+@app.get("/")
+async def root():
+    return {
+        "success": True,
+        "message": "CreditSaathi API — AI-Powered Credit Intelligence for MSMEs",
+        "version": settings.APP_VERSION,
+        "docs": "/api/v1/docs",
+        "health": "/api/v1/health",
+    }
+
+
 # ── Health Check ─────────────────────────────────────
 @app.get("/api/v1/health")
 async def health_check():

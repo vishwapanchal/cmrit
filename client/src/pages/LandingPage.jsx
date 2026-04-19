@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Shield, BarChart3, Landmark, Brain, Eye, Zap, ChevronRight } from "lucide-react";
+import CircuitStatus from "../components/CircuitStatus";
 
 /* ── Scroll reveal hook ── */
 function useScrollReveal() {
@@ -316,8 +317,15 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Circuit Status ── */}
+      <div className="border-t border-border">
+        <div className="max-w-6xl mx-auto">
+          <CircuitStatus />
+        </div>
+      </div>
+
       {/* ── Footer ── */}
-      <footer className="py-8 px-6 border-t border-border">
+      <footer className="py-6 px-6 border-t border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 no-underline">
             <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-white font-bold text-[10px]">CS</div>
